@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-sans: "DM Sans", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F8FAFC;
+    color: #0F172A;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono, .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.leaflet-container {
+  font-family: var(--font-sans);
+  z-index: 1;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "RentShare BD",
+  "description": "Smart Rental, Roommate Matching & Shared Living Management Platform for Bangladesh. Find a Place. Find the Right Roommate. Manage Your Life Together.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

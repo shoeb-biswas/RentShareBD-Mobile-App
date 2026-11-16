@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: rentshare_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret_password
+      MYSQL_DATABASE: rentshare_bd
+      MYSQL_USER: rentshare
+      MYSQL_PASSWORD: rentshare_secret_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  chat-service:
+    build: .
+    container_name: rentshare_chat_service
+    command: npm run start:chat
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      CHAT_SERVICE_PORT: 3001
+      DB_CLIENT: mysql
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: rentshare
+      MYSQL_PASSWORD: rentshare_secret_password
+      MYSQL_DATABASE: rentshare_bd
+      JWT_SECRET: ${JWT_SECRET:-docker-local-dev-jwt-secret-change-in-prod}
+      CHAT_CORS_ORIGIN: ${CHAT_CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "3001:3001"
+
+  app:
+    build: .
+    container_name: rentshare_app
+    command: npm start
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      chat-service:
+        condition: service_started
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DB_CLIENT: mysql
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: rentshare
+      MYSQL_PASSWORD: rentshare_secret_password
+      MYSQL_DATABASE: rentshare_bd
+      CHAT_SERVICE_URL: http://chat-service:3001
+      VITE_CHAT_SERVICE_URL: ${VITE_CHAT_SERVICE_URL:-}
+      JWT_SECRET: ${JWT_SECRET:-docker-local-dev-jwt-secret-change-in-prod}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql_data:
